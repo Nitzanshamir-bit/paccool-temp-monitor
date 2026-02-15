@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PACCOOL - התחברות</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Rubik', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-xl p-8 w-96">
+    <!-- Logo -->
+    <div class="text-center mb-6">
+      <img src="assets/logo.png" alt="דובי שמיר בע״מ" class="mx-auto h-32 object-contain mb-4" onerror="this.style.display='none'">
+      <h1 class="text-3xl font-bold text-blue-600 mb-2">PACCOOL</h1>
+      <p class="text-gray-600">ניטור טמפרטורה</p>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="space-y-4">
+      <!-- Username/Email Input -->
+      <div>
+        <label for="username" class="block text-sm font-medium text-gray-700 mb-1 text-right">
+          שם משתמש / אימייל
+        </label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+          placeholder="הזן שם משתמש"
+        />
+      </div>
+
+      <!-- Password Input -->
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1 text-right">
+          סיסמה
+        </label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+          placeholder="הזן סיסמה"
+        />
+      </div>
+
+      <!-- Remember Me Checkbox -->
+      <div class="flex items-center justify-start flex-row-reverse">
+        <label for="rememberMe" class="mr-2 block text-sm text-gray-700">
+          זכור אותי / כניסה מהירה
+        </label>
+        <input
+          type="checkbox"
+          id="rememberMe"
+          name="rememberMe"
+          class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        />
+      </div>
+
+      <!-- Error Message -->
+      <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm text-right">
+        <span id="errorText"></span>
+      </div>
+
+      <!-- Login Button -->
+      <button
+        type="submit"
+        id="loginButton"
+        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
+      >
+        התחבר
+      </button>
+
+      <!-- Loading State (hidden by default) -->
+      <div id="loadingState" class="hidden text-center text-gray-600 text-sm">
+        <svg class="animate-spin h-5 w-5 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        מתחבר...
+      </div>
+    </form>
+
+    <!-- Quick Login Section (will be shown if credentials are stored) -->
+    <div id="quickLoginSection" class="hidden mt-4 pt-4 border-t border-gray-200 text-center">
+      <button
+        id="forgetCredentials"
+        class="text-sm text-gray-600 hover:text-gray-800 underline"
+      >
+        שכח פרטי התחברות שמורים
+      </button>
+    </div>
+  </div>
+
+  <script src="js/loginController.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PACCOOL - סטטוס טמפרטורה</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Rubik', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16 sm:h-20">
+        <button
+          id="logoutBtn"
+          class="text-xs sm:text-sm text-gray-600 hover:text-gray-800 underline"
+        >
+          התנתק
+        </button>
+        <div class="flex items-center gap-2 sm:gap-4">
+          <div class="text-left">
+            <h1 class="text-lg sm:text-2xl font-bold text-blue-600">דובי שמיר בע״מ</h1>
+            <p class="text-xs text-gray-500">ניטור טמפרטורה</p>
+          </div>
+          <img src="assets/logo.png" alt="דובי שמיר בע״מ" class="h-12 sm:h-16 object-contain" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <!-- Tank Name -->
+    <div class="mb-4 sm:mb-6 text-center">
+      <h2 id="tankName" class="text-xl sm:text-3xl font-bold text-gray-800 break-words px-2">
+        טוען...
+      </h2>
+      <p id="tankSerial" class="text-xs sm:text-sm text-gray-500 mt-1"></p>
+    </div>
+
+    <!-- MAIN TEMPERATURE DISPLAY - CENTERED AND DOMINANT -->
+    <div class="flex justify-center items-center mb-12 px-4">
+      <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-12 text-center w-full max-w-[500px]">
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-600 mb-4 sm:mb-6">טמפרטורה נוכחית</h3>
+        <div id="temperature" class="text-5xl sm:text-7xl font-black text-blue-600 mb-4 sm:mb-6 leading-none break-words">
+          --
+        </div>
+        <p id="timestamp" class="text-sm sm:text-base text-gray-500">
+          עדכון אחרון: --
+        </p>
+      </div>
+    </div>
+
+    <!-- Additional Info Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
+      <!-- Status Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">סטטוס</h3>
+        <p id="status" class="text-2xl font-medium text-gray-800">--</p>
+      </div>
+
+      <!-- Model Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">דגם</h3>
+        <p id="model" class="text-2xl font-medium text-gray-800">--</p>
+      </div>
+
+      <!-- System Message Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">מצב מערכת</h3>
+        <div id="messageContainer" class="flex items-center justify-center">
+          <p id="message" class="text-lg text-gray-800">--</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refresh Button -->
+    <div class="flex justify-center">
+      <button
+        id="refreshBtn"
+        class="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium flex items-center text-lg"
+      >
+        <span id="refreshText">רענן</span>
+        <svg id="refreshIcon" class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="hidden mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm text-center max-w-2xl mx-auto">
+      <span id="errorText"></span>
+    </div>
+  </div>
+
+  <script src="js/statusController.js"></script>
+</body>
+</html>
