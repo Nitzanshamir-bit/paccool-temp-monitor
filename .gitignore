@@ -30,6 +30,7 @@ tmp/
 temp/
 *.tmp
 
-# Test files (if we had used the test login script)
+# Test files
 test-login.js
+test-discovery*.js
 dashboard.html

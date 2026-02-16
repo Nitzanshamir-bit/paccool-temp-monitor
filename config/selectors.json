@@ -1,5 +1,8 @@
 {
+  "baseUrl": "http://icontrol.paccool.be",
   "loginUrl": "http://icontrol.paccool.be/en/auth/login",
+  "homeUrl": "http://icontrol.paccool.be/en/home",
+  "locale": "en",
   "csrfTokenSelectors": [
     "input[name='_token']",
     "input[name='csrf_token']",
@@ -12,34 +15,9 @@
     "latestPanelHeading": "Latest",
     "successPanelHeading": "Success"
   },
-  "selectors": {
-    "tankName": {
-      "description": "First li item in Info panel",
-      "method": "Find panel with heading 'Info', then get first li item"
-    },
-    "model": {
-      "description": "Second li item in Info panel",
-      "method": "Find panel with heading 'Info', then get second li item"
-    },
-    "serial": {
-      "description": "Third li item in Info panel",
-      "method": "Find panel with heading 'Info', then get third li item"
-    },
-    "timestamp": {
-      "description": "First li item in Latest panel",
-      "method": "Find panel with heading 'Latest', then get first li item"
-    },
-    "status": {
-      "description": "Second li item in Latest panel",
-      "method": "Find panel with heading 'Latest', then get second li item"
-    },
-    "temperature": {
-      "description": "Third li item in Latest panel",
-      "method": "Find panel with heading 'Latest', then get third li item"
-    },
-    "message": {
-      "description": "Body of Success panel",
-      "method": "Find panel with heading 'Success', then get panel-body text"
-    }
+  "endpoints": {
+    "tankDetailPattern": "/en/tankdetail/{tankId}/{serial}",
+    "postData": "/en/post",
+    "postTimer": "/en/post_timer"
   }
 }

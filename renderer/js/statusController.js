@@ -1,13 +1,7 @@
-// Status Controller - Handles temperature display and refresh
+// Status Controller V2 - Multi-tank support
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const tankNameEl = document.getElementById('tankName');
-  const tankSerialEl = document.getElementById('tankSerial');
-  const temperatureEl = document.getElementById('temperature');
-  const timestampEl = document.getElementById('timestamp');
-  const statusEl = document.getElementById('status');
-  const modelEl = document.getElementById('model');
-  const messageEl = document.getElementById('message');
+  const tanksContainer = document.getElementById('tanksContainer');
   const refreshBtn = document.getElementById('refreshBtn');
   const refreshIcon = document.getElementById('refreshIcon');
   const refreshText = document.getElementById('refreshText');
@@ -15,24 +9,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const errorMessage = document.getElementById('errorMessage');
   const errorText = document.getElementById('errorText');
 
-  // Load temperature data on page load
   await loadTemperatureData();
 
-  // Handle refresh button
   refreshBtn.addEventListener('click', async () => {
     await loadTemperatureData();
   });
 
-  // Handle logout button
   logoutBtn.addEventListener('click', async () => {
     try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include' // Include cookies in request
-      });
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/';
     } catch (error) {
-      console.error('Logout error:', error);
       window.location.href = '/';
     }
   });
@@ -42,53 +29,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     hideError();
 
     try {
-      const response = await fetch('/api/temperature', {
-        credentials: 'include' // IMPORTANT: Include cookies to send session
-      });
+      const response = await fetch('/api/temperature', { credentials: 'include' });
       const result = await response.json();
 
-      if (result.success && result.data) {
-        updateDisplay(result.data);
+      if (result.success && result.tanks) {
+        renderTanks(result.tanks);
       } else if (result.sessionExpired) {
-        // Session expired, return to login
         showError('ההתחברות פגה. מעביר לדף התחברות...');
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 2000);
+        setTimeout(() => { window.location.href = '/'; }, 2000);
       } else {
-        let errorMsg = result.error || 'שגיאה בטעינת נתוני הטמפרטורה';
-
-        // Translate common errors
-        if (errorMsg.includes('Failed to load') || errorMsg.includes('failed to fetch')) {
-          errorMsg = 'שגיאה בטעינת נתונים';
-        } else if (errorMsg.includes('network') || errorMsg.includes('connect')) {
-          errorMsg = 'בעיית חיבור לשרת';
-        }
-
-        showError(errorMsg);
+        let msg = result.error || 'שגיאה בטעינת נתוני הטמפרטורה';
+        if (msg.includes('Failed') || msg.includes('failed')) msg = 'שגיאה בטעינת נתונים';
+        else if (msg.includes('network') || msg.includes('connect')) msg = 'בעיית חיבור לשרת';
+        showError(msg);
       }
     } catch (error) {
-      console.error('Error loading temperature data:', error);
+      console.error('Error:', error);
       showError('שגיאה בחיבור לשרת. בדוק את חיבור האינטרנט.');
     } finally {
       setLoadingState(false);
     }
   }
 
-  function updateDisplay(data) {
-    // Update tank name and serial (keep original English from PACCOOL)
-    tankNameEl.textContent = data.tankName || 'לא ידוע';
-    tankSerialEl.textContent = data.serial ? `מספר סידורי: ${data.serial}` : '';
+  function renderTanks(tanks) {
+    if (!tanks || tanks.length === 0) {
+      tanksContainer.innerHTML = '<p class="text-center text-gray-500 py-8">לא נמצאו טנקים</p>';
+      return;
+    }
 
-    // Update temperature (ensure it has °C symbol)
-    temperatureEl.textContent = formatTemperature(data.temperature);
+    // Grid: 1 tank = centered, 2+ tanks = side by side on desktop
+    const gridClass = tanks.length === 1
+      ? 'flex justify-center'
+      : 'grid grid-cols-1 lg:grid-cols-2 gap-6';
 
-    // Update timestamp
-    timestampEl.textContent = `עדכון אחרון: ${formatTimestamp(data.timestamp)}`;
+    tanksContainer.innerHTML = `<div class="${gridClass}">${tanks.map(t => createTankCard(t, tanks.length)).join('')}</div>`;
+  }
 
-    // Update status - translate to Hebrew
-    let status = data.status || '--';
-    const statusTranslations = {
+  function createTankCard(data, totalTanks) {
+    const temp = formatTemperature(data.temperature);
+    const status = translateStatus(data.status);
+    const model = data.model === 'VM/DX' ? 'סילו VM/DX' : (data.model || '--');
+    const message = translateMessage(data.message);
+    const serial = data.serial || '';
+    const tankName = data.tankName || 'לא ידוע';
+    const timestamp = data.timestamp ? data.timestamp.trim() : '--';
+
+    const maxWidth = totalTanks === 1 ? 'max-w-[550px] w-full' : 'w-full';
+
+    return `
+      <div class="${maxWidth}">
+        <!-- Tank Header -->
+        <div class="mb-3 text-center">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-800">${tankName}</h2>
+          <p class="text-xs sm:text-sm text-gray-500">${serial ? 'מספר סידורי: ' + serial : ''}</p>
+        </div>
+
+        <!-- Temperature Display -->
+        <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 text-center mb-4">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-600 mb-3">טמפרטורה נוכחית</h3>
+          <div class="text-5xl sm:text-7xl font-black text-blue-600 mb-3 leading-none">${temp}</div>
+          <p class="text-sm text-gray-500">עדכון אחרון: ${timestamp}</p>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <div class="bg-white rounded-lg shadow-lg p-4 text-center">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2">סטטוס</h4>
+            <p class="text-lg font-medium text-gray-800">${status}</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-4 text-center">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2">דגם</h4>
+            <p class="text-lg font-medium text-gray-800">${model}</p>
+          </div>
+          <div class="bg-white rounded-lg shadow-lg p-4 text-center">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2">מצב מערכת</h4>
+            <p class="text-base text-gray-800">${message}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function formatTemperature(tempString) {
+    if (!tempString || tempString === '--') return '--';
+    if (tempString.includes('°C')) return tempString;
+    const match = tempString.match(/(\d+[.,]\d+)/);
+    if (match) return `${match[1].replace(',', '.')}°C`;
+    return tempString;
+  }
+
+  function translateStatus(status) {
+    if (!status) return '--';
+    const translations = {
       'STANDBY': 'המתנה',
       'CLEANING': 'המערכת בשטיפה',
       'COOLING': 'קירור',
@@ -96,49 +128,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       'DEFROST': 'הפשרה',
       'ALARM': 'אזעקה'
     };
-    statusEl.textContent = statusTranslations[status.toUpperCase()] || status;
-
-    // Update model - add "סילו" for VM/DX
-    let model = data.model || '--';
-    if (model === 'VM/DX') {
-      model = 'סילו VM/DX';
-    }
-    modelEl.textContent = model;
-
-    // Update system message - translate "Everything ok" to Hebrew
-    let systemMessage = data.message || 'אין הודעה';
-    if (systemMessage.toLowerCase() === 'everything ok') {
-      systemMessage = 'המערכת במצב תקין';
-    }
-    messageEl.textContent = systemMessage;
-
-    console.log('Display updated with data:', data);
+    return translations[status.toUpperCase()] || status;
   }
 
-  function formatTemperature(tempString) {
-    if (!tempString) return '--';
-
-    // Ensure the temperature has the °C symbol
-    if (tempString.includes('°C')) {
-      return tempString;
-    }
-
-    // Try to extract numeric value
-    const match = tempString.match(/(\d+[.,]\d+)/);
-    if (match) {
-      const value = match[1].replace(',', '.');
-      return `${value}°C`;
-    }
-
-    return tempString;
-  }
-
-  function formatTimestamp(timestamp) {
-    if (!timestamp) return '--';
-
-    // Timestamp is already in correct format: "2026-02-13 10:15:41"
-    // Just clean it up
-    return timestamp.trim();
+  function translateMessage(msg) {
+    if (!msg) return 'אין הודעה';
+    if (msg.toLowerCase() === 'everything ok') return 'המערכת במצב תקין';
+    return msg;
   }
 
   function setLoadingState(isLoading) {

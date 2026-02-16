@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: paccool-temp-monitor
+    name: paccool-temp-monitor-v2
     env: node
     plan: free
     buildCommand: npm install

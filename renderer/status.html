@@ -24,6 +24,11 @@
           התנתק
         </button>
         <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Nav Tabs -->
+          <div class="flex gap-1 sm:gap-2 ml-4 sm:ml-8">
+            <a href="/status" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md bg-blue-600 text-white">סטטוס</a>
+            <a href="/graphs" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100">גרפים</a>
+          </div>
           <div class="text-left">
             <h1 class="text-lg sm:text-2xl font-bold text-blue-600">דובי שמיר בע״מ</h1>
             <p class="text-xs text-gray-500">ניטור טמפרטורה</p>
@@ -36,47 +41,14 @@
 
   <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-    <!-- Tank Name -->
-    <div class="mb-4 sm:mb-6 text-center">
-      <h2 id="tankName" class="text-xl sm:text-3xl font-bold text-gray-800 break-words px-2">
-        טוען...
-      </h2>
-      <p id="tankSerial" class="text-xs sm:text-sm text-gray-500 mt-1"></p>
-    </div>
-
-    <!-- MAIN TEMPERATURE DISPLAY - CENTERED AND DOMINANT -->
-    <div class="flex justify-center items-center mb-12 px-4">
-      <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-12 text-center w-full max-w-[500px]">
-        <h3 class="text-lg sm:text-xl font-semibold text-gray-600 mb-4 sm:mb-6">טמפרטורה נוכחית</h3>
-        <div id="temperature" class="text-5xl sm:text-7xl font-black text-blue-600 mb-4 sm:mb-6 leading-none break-words">
-          --
-        </div>
-        <p id="timestamp" class="text-sm sm:text-base text-gray-500">
-          עדכון אחרון: --
-        </p>
-      </div>
-    </div>
-
-    <!-- Additional Info Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
-      <!-- Status Card -->
-      <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">סטטוס</h3>
-        <p id="status" class="text-2xl font-medium text-gray-800">--</p>
-      </div>
-
-      <!-- Model Card -->
-      <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">דגם</h3>
-        <p id="model" class="text-2xl font-medium text-gray-800">--</p>
-      </div>
-
-      <!-- System Message Card -->
-      <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">מצב מערכת</h3>
-        <div id="messageContainer" class="flex items-center justify-center">
-          <p id="message" class="text-lg text-gray-800">--</p>
-        </div>
+    <!-- Dynamic Tanks Container -->
+    <div id="tanksContainer" class="mb-8">
+      <div class="text-center py-12">
+        <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500">טוען נתונים...</p>
       </div>
     </div>
 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PACCOOL - גרפים</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Rubik', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16 sm:h-20">
+        <button
+          id="logoutBtn"
+          class="text-xs sm:text-sm text-gray-600 hover:text-gray-800 underline"
+        >
+          התנתק
+        </button>
+        <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Nav Tabs -->
+          <div class="flex gap-1 sm:gap-2 ml-4 sm:ml-8">
+            <a href="/status" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100">סטטוס</a>
+            <a href="/graphs" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md bg-blue-600 text-white">גרפים</a>
+          </div>
+          <div class="text-left">
+            <h1 class="text-lg sm:text-2xl font-bold text-blue-600">דובי שמיר בע״מ</h1>
+            <p class="text-xs text-gray-500">ניטור טמפרטורה</p>
+          </div>
+          <img src="assets/logo.png" alt="דובי שמיר בע״מ" class="h-12 sm:h-16 object-contain" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <!-- Date Picker -->
+    <div class="flex justify-center items-center gap-3 mb-6">
+      <button id="prevDay" class="bg-white rounded-lg shadow px-3 py-2 hover:bg-gray-50 text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+      </button>
+      <input type="date" id="datePicker" class="bg-white rounded-lg shadow px-4 py-2 text-center font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button id="nextDay" class="bg-white rounded-lg shadow px-3 py-2 hover:bg-gray-50 text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+    </div>
+
+    <!-- Charts Container -->
+    <div id="chartsContainer">
+      <div class="text-center py-12">
+        <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500">טוען גרפים...</p>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="hidden mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm text-center max-w-2xl mx-auto">
+      <span id="errorText"></span>
+    </div>
+  </div>
+
+  <script src="js/graphsController.js"></script>
+</body>
+</html>
