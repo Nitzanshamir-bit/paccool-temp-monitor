@@ -112,8 +112,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     chartsContainer.innerHTML = `<div class="${gridClass}">${tanks.map((t, i) => `
       <div class="w-full">
-        <div class="bg-white rounded-xl shadow-lg p-3 sm:p-6">
-          <h3 class="text-lg font-bold text-gray-800 text-center mb-4">${t.name || t.serial}</h3>
+        <div class="bg-white rounded-none sm:rounded-xl shadow-lg p-1 sm:p-6">
+          <h3 class="text-base sm:text-lg font-bold text-gray-800 text-center mb-2 sm:mb-4">${t.name || t.serial}</h3>
           <div class="relative" style="height: 400px;">
             <canvas id="chart-${i}"></canvas>
           </div>
@@ -179,6 +179,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    const isMobile = window.innerWidth < 640;
+
     const scales = {
       x: {
         type: 'time',
@@ -190,28 +192,26 @@ document.addEventListener('DOMContentLoaded', async () => {
           tooltipFormat: 'dd/MM/yyyy HH:mm'
         },
         title: {
-          display: true,
-          text: 'שעה',
-          font: { family: 'Rubik' }
+          display: false
         },
         ticks: {
-          font: { family: 'Rubik' },
-          maxTicksLimit: 12
+          font: { family: 'Rubik', size: isMobile ? 10 : 12 },
+          maxTicksLimit: isMobile ? 8 : 12
         }
       },
       yTemp: {
         type: 'linear',
         position: 'right',
         title: {
-          display: true,
+          display: !isMobile,
           text: 'טמפרטורה (°C)',
           color: 'rgba(34, 197, 94, 1)',
           font: { family: 'Rubik', weight: 'bold' }
         },
         ticks: {
           color: 'rgba(34, 197, 94, 1)',
-          font: { family: 'Rubik' },
-          callback: (v) => v + '°C'
+          font: { family: 'Rubik', size: isMobile ? 10 : 12 },
+          callback: (v) => v + '°'
         },
         grid: {
           drawOnChartArea: !hasVolume
@@ -224,14 +224,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         type: 'linear',
         position: 'left',
         title: {
-          display: true,
+          display: !isMobile,
           text: 'נפח חלב (ליטר)',
           color: 'rgba(59, 130, 246, 1)',
           font: { family: 'Rubik', weight: 'bold' }
         },
         ticks: {
           color: 'rgba(59, 130, 246, 1)',
-          font: { family: 'Rubik' },
+          font: { family: 'Rubik', size: isMobile ? 10 : 12 },
           callback: (v) => v + ' L'
         },
         grid: {
@@ -250,17 +250,21 @@ document.addEventListener('DOMContentLoaded', async () => {
           mode: 'index',
           intersect: false
         },
+        layout: {
+          padding: isMobile ? { left: 0, right: 0, top: 0, bottom: 0 } : {}
+        },
         plugins: {
           title: {
             display: true,
             text: hasVolume ? 'טמפרטורה ונפח חלב' : 'טמפרטורה',
-            font: { family: 'Rubik', size: 16, weight: 'bold' }
+            font: { family: 'Rubik', size: isMobile ? 13 : 16, weight: 'bold' }
           },
           legend: {
             rtl: true,
             labels: {
-              font: { family: 'Rubik' },
-              usePointStyle: true
+              font: { family: 'Rubik', size: isMobile ? 10 : 12 },
+              usePointStyle: true,
+              boxWidth: isMobile ? 8 : 40
             }
           },
           tooltip: {
