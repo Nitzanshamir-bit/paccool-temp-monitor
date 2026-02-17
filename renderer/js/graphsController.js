@@ -111,10 +111,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       : 'grid grid-cols-1 lg:grid-cols-2 gap-6';
 
     chartsContainer.innerHTML = `<div class="${gridClass}">${tanks.map((t, i) => `
-      <div class="${tanks.length === 1 ? 'w-full max-w-[700px]' : 'w-full'}">
-        <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+      <div class="w-full">
+        <div class="bg-white rounded-xl shadow-lg p-3 sm:p-6">
           <h3 class="text-lg font-bold text-gray-800 text-center mb-4">${t.name || t.serial}</h3>
-          <div class="relative" style="height: 350px;">
+          <div class="relative" style="height: 400px;">
             <canvas id="chart-${i}"></canvas>
           </div>
           <p class="text-xs text-gray-400 text-center mt-2">מספר סידורי: ${t.serial}</p>
