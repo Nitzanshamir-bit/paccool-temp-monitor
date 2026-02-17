@@ -2,14 +2,35 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
+const crypto = require('crypto');
 const PaccoolScraper = require('./src/scraper/paccoolScraper');
-const CredentialStore = require('./src/storage/credentialStore');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'paccool-temp-monitor-v2-secret-key-change-in-production';
 
+// Cookie-based credential encryption (survives server restarts)
+const COOKIE_KEY = crypto.scryptSync(SESSION_SECRET, 'paccool-salt', 32);
+function encryptCreds(email, password) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', COOKIE_KEY, iv);
+  let enc = cipher.update(JSON.stringify({ email, password }), 'utf8', 'hex');
+  enc += cipher.final('hex');
+  return iv.toString('hex') + ':' + enc;
+}
+function decryptCreds(token) {
+  try {
+    const [ivHex, enc] = token.split(':');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', COOKIE_KEY, Buffer.from(ivHex, 'hex'));
+    let dec = decipher.update(enc, 'hex', 'utf8');
+    dec += decipher.final('utf8');
+    return JSON.parse(dec);
+  } catch { return null; }
+}
+
 // Middleware
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -30,8 +51,6 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'renderer')));
 app.use('/js', express.static(path.join(__dirname, 'renderer', 'js')));
 
-const credentialStore = new CredentialStore();
-
 function getScraper(req) {
   if (!global.scrapers) global.scrapers = {};
   if (!global.scrapers[req.sessionID]) {
@@ -40,16 +59,19 @@ function getScraper(req) {
   return global.scrapers[req.sessionID];
 }
 
-// Helper: auto re-login with stored credentials
-async function tryAutoRelogin(scraper, credentialStore) {
-  const credResult = credentialStore.getCredentials();
-  if (credResult.success && credResult.credentials) {
-    console.log('[API] Stored credentials found, re-logging in...');
-    const loginResult = await scraper.login(
-      credResult.credentials.email,
-      credResult.credentials.password
-    );
-    return loginResult.success;
+// Helper: auto re-login with stored credentials from cookie
+async function tryAutoRelogin(req, scraper) {
+  const token = req.cookies && req.cookies.remember_token;
+  if (!token) return false;
+  const creds = decryptCreds(token);
+  if (creds) {
+    console.log('[API] Remember cookie found, re-logging in...');
+    const loginResult = await scraper.login(creds.email, creds.password);
+    if (loginResult.success) {
+      req.session.isAuthenticated = true;
+      req.session.isDealer = loginResult.isDealer || false;
+      return true;
+    }
   }
   return false;
 }
@@ -60,7 +82,24 @@ app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 
 // === Pages ===
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  // Auto-login if remember cookie exists and no active session
+  if (!req.session.isAuthenticated && req.cookies && req.cookies.remember_token) {
+    const creds = decryptCreds(req.cookies.remember_token);
+    if (creds) {
+      const scraper = getScraper(req);
+      const loginResult = await scraper.login(creds.email, creds.password);
+      if (loginResult.success) {
+        req.session.isAuthenticated = true;
+        req.session.isDealer = loginResult.isDealer || false;
+        return req.session.save(() => {
+          res.redirect(loginResult.isDealer ? '/farms' : '/status');
+        });
+      }
+    }
+    // Invalid cookie - clear it
+    res.clearCookie('remember_token');
+  }
   res.sendFile(path.join(__dirname, 'renderer', 'login.html'));
 });
 
@@ -90,7 +129,8 @@ app.post('/api/login', async (req, res) => {
     req.session.isDealer = result.isDealer || false;
 
     if (rememberMe) {
-      credentialStore.saveCredentials(email, password);
+      const token = encryptCreds(email, password);
+      res.cookie('remember_token', token, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' });
     }
 
     req.session.save((err) => {
@@ -108,6 +148,7 @@ app.post('/api/logout', (req, res) => {
   if (req.sessionID && global.scrapers && global.scrapers[req.sessionID]) {
     delete global.scrapers[req.sessionID];
   }
+  res.clearCookie('remember_token');
   req.session.destroy((err) => {
     res.json(err ? { success: false, error: err.message } : { success: true });
   });
@@ -158,7 +199,7 @@ app.get('/api/temperature', async (req, res) => {
 
   // Auto re-login on session expire
   if (result.sessionExpired) {
-    const relogged = await tryAutoRelogin(scraper, credentialStore);
+    const relogged = await tryAutoRelogin(req, scraper);
     if (relogged) {
       if (userId && scraper.isDealer()) {
         result = await scraper.getFarmTanksData(userId);
@@ -206,7 +247,7 @@ app.get('/api/graph/:serial', async (req, res) => {
   let result = await scraper.getGraphData(serial, date);
 
   if (result.sessionExpired) {
-    const relogged = await tryAutoRelogin(scraper, credentialStore);
+    const relogged = await tryAutoRelogin(req, scraper);
     if (relogged) {
       result = await scraper.getGraphData(serial, date);
     }
@@ -234,7 +275,7 @@ app.get('/api/graphs', async (req, res) => {
   }
 
   if (result.sessionExpired) {
-    const relogged = await tryAutoRelogin(scraper, credentialStore);
+    const relogged = await tryAutoRelogin(req, scraper);
     if (relogged) {
       if (userId && scraper.isDealer()) {
         result = await scraper.getFarmGraphData(userId, date);
@@ -250,16 +291,19 @@ app.get('/api/graphs', async (req, res) => {
 // === API: Credentials ===
 
 app.get('/api/credentials', (req, res) => {
-  const result = credentialStore.getCredentials();
-  if (result.success && result.credentials) {
-    res.json({ success: true, credentials: { email: result.credentials.email } });
-  } else {
-    res.json({ success: false, credentials: null });
+  const token = req.cookies && req.cookies.remember_token;
+  if (token) {
+    const creds = decryptCreds(token);
+    if (creds) {
+      return res.json({ success: true, credentials: { email: creds.email } });
+    }
   }
+  res.json({ success: false, credentials: null });
 });
 
 app.delete('/api/credentials', (req, res) => {
-  res.json(credentialStore.clearCredentials());
+  res.clearCookie('remember_token');
+  res.json({ success: true });
 });
 
 // Start server
