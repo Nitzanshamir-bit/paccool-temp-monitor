@@ -12,6 +12,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Track chart instances for cleanup
   let chartInstances = [];
 
+  // Check if dealer is viewing a specific farm
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get('userId');
+  const farmName = params.get('farmName');
+
+  // Add "back to farms" link and update nav if dealer viewing a farm
+  if (userId) {
+    const nav = document.querySelector('.flex.gap-1');
+    if (nav) {
+      const farmsTab = document.createElement('a');
+      farmsTab.href = '/farms';
+      farmsTab.className = 'px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100';
+      farmsTab.textContent = 'רפתות';
+      nav.appendChild(farmsTab);
+    }
+    // Update status link to pass userId
+    const statusLink = document.querySelector('a[href="/status"]');
+    if (statusLink) {
+      statusLink.href = `/status?userId=${userId}&farmName=${encodeURIComponent(farmName || '')}`;
+    }
+  }
+
   // Set default date to today
   const today = new Date();
   datePicker.value = formatDateForInput(today);
@@ -56,7 +78,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const date = datePicker.value;
-      const response = await fetch(`/api/graphs?date=${date}`, { credentials: 'include' });
+      const apiUrl = userId ? `/api/graphs?date=${date}&userId=${userId}` : `/api/graphs?date=${date}`;
+      const response = await fetch(apiUrl, { credentials: 'include' });
       const result = await response.json();
 
       if (result.success && result.tanks) {

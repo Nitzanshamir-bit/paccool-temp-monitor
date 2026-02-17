@@ -54,6 +54,10 @@ async function tryAutoRelogin(scraper, credentialStore) {
   return false;
 }
 
+// === Keep-alive: self-ping every 14 min to prevent Render free tier spin-down ===
+
+app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
+
 // === Pages ===
 
 app.get('/', (req, res) => {
@@ -68,6 +72,10 @@ app.get('/graphs', (req, res) => {
   res.sendFile(path.join(__dirname, 'renderer', 'graphs.html'));
 });
 
+app.get('/farms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'renderer', 'farms.html'));
+});
+
 // === API: Auth ===
 
 app.post('/api/login', async (req, res) => {
@@ -79,6 +87,7 @@ app.post('/api/login', async (req, res) => {
 
   if (result.success) {
     req.session.isAuthenticated = true;
+    req.session.isDealer = result.isDealer || false;
 
     if (rememberMe) {
       credentialStore.saveCredentials(email, password);
@@ -104,6 +113,30 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
+// === API: Farms (dealer mode) ===
+
+app.get('/api/farms', (req, res) => {
+  if (!req.session.isAuthenticated) {
+    return res.json({ success: false, error: 'Not authenticated', sessionExpired: true });
+  }
+
+  const scraper = getScraper(req);
+  if (!scraper.isDealer()) {
+    return res.json({ success: false, error: 'Not a dealer account' });
+  }
+
+  const farms = scraper.getFarms();
+  res.json({
+    success: true,
+    farms: farms.map(f => ({
+      name: f.name,
+      userId: f.userId,
+      tankCount: f.tankCount,
+      serials: f.serials
+    }))
+  });
+});
+
 // === API: Temperature (multi-tank) ===
 
 app.get('/api/temperature', async (req, res) => {
@@ -112,13 +145,26 @@ app.get('/api/temperature', async (req, res) => {
   }
 
   const scraper = getScraper(req);
-  let result = await scraper.getAllTanksData();
+  const userId = req.query.userId;
+
+  let result;
+
+  // Dealer viewing a specific farm
+  if (userId && scraper.isDealer()) {
+    result = await scraper.getFarmTanksData(userId);
+  } else {
+    result = await scraper.getAllTanksData();
+  }
 
   // Auto re-login on session expire
   if (result.sessionExpired) {
     const relogged = await tryAutoRelogin(scraper, credentialStore);
     if (relogged) {
-      result = await scraper.getAllTanksData();
+      if (userId && scraper.isDealer()) {
+        result = await scraper.getFarmTanksData(userId);
+      } else {
+        result = await scraper.getAllTanksData();
+      }
     }
   }
 
@@ -175,14 +221,26 @@ app.get('/api/graphs', async (req, res) => {
   }
 
   const date = req.query.date || new Date().toISOString().split('T')[0];
+  const userId = req.query.userId;
 
   const scraper = getScraper(req);
-  let result = await scraper.getAllTanksGraphData(date);
+  let result;
+
+  // Dealer viewing a specific farm's graphs
+  if (userId && scraper.isDealer()) {
+    result = await scraper.getFarmGraphData(userId, date);
+  } else {
+    result = await scraper.getAllTanksGraphData(date);
+  }
 
   if (result.sessionExpired) {
     const relogged = await tryAutoRelogin(scraper, credentialStore);
     if (relogged) {
-      result = await scraper.getAllTanksGraphData(date);
+      if (userId && scraper.isDealer()) {
+        result = await scraper.getFarmGraphData(userId, date);
+      } else {
+        result = await scraper.getAllTanksGraphData(date);
+      }
     }
   }
 
@@ -210,7 +268,14 @@ app.listen(PORT, () => {
   console.log('PACCOOL Temperature Monitor V2 - Web App');
   console.log('='.repeat(60));
   console.log(`\n✓ Server running at: http://localhost:${PORT}`);
-  console.log('\nFeatures: Multi-tank support, Graph view');
+  console.log('\nFeatures: Multi-tank support, Graph view, Dealer mode');
   console.log('Press Ctrl+C to stop the server');
   console.log('='.repeat(60));
+
+  // Keep-alive: ping ourselves every 14 minutes to prevent Render spin-down
+  const KEEP_ALIVE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(() => {
+    const http = require('http');
+    http.get(`${KEEP_ALIVE_URL}/api/ping`, () => {}).on('error', () => {});
+  }, 14 * 60 * 1000);
 });

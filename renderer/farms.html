@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PACCOOL - רפתות</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Rubik', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16 sm:h-20">
+        <button
+          id="logoutBtn"
+          class="text-xs sm:text-sm text-gray-600 hover:text-gray-800 underline"
+        >
+          התנתק
+        </button>
+        <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Nav Tabs -->
+          <div class="flex gap-1 sm:gap-2 ml-4 sm:ml-8">
+            <a href="/farms" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md bg-blue-600 text-white">רפתות</a>
+          </div>
+          <div class="text-left">
+            <h1 class="text-lg sm:text-2xl font-bold text-blue-600">דובי שמיר בע״מ</h1>
+            <p class="text-xs text-gray-500">ניטור טמפרטורה</p>
+          </div>
+          <img src="assets/logo.png" alt="דובי שמיר בע״מ" class="h-12 sm:h-16 object-contain" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-6">בחר רפת</h2>
+
+    <!-- Farms Container -->
+    <div id="farmsContainer">
+      <div class="text-center py-12">
+        <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500">טוען רפתות...</p>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="hidden mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm text-center max-w-2xl mx-auto">
+      <span id="errorText"></span>
+    </div>
+  </div>
+
+  <script src="js/farmsController.js"></script>
+</body>
+</html>

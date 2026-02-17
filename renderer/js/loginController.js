@@ -86,8 +86,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const result = await response.json();
 
       if (result.success) {
-        // Login successful - redirect to status screen
-        window.location.href = '/status';
+        // Login successful - redirect based on account type
+        window.location.href = result.isDealer ? '/farms' : '/status';
       } else {
         // Login failed - show error
         let errorMsg = result.error || 'ההתחברות נכשלה. אנא נסה שוב.';

@@ -101,6 +101,38 @@ class DataParser {
       return { temps: [], volume: [] };
     }
   }
+
+  /**
+   * Extract the latest volume reading from table HTML.
+   * Returns { volume: number, timestamp: string } or null if no volume data.
+   */
+  getLatestVolume(html) {
+    try {
+      const $ = cheerio.load(`<table>${html}</table>`);
+      let latest = null;
+
+      $('tr.oculusdatarow').each((i, el) => {
+        const rowtype = $(el).attr('rowtype') || '';
+        if (rowtype.indexOf('Volume') > -1) {
+          const cells = $(el).find('td');
+          if (cells.length < 3) return;
+          const dateStr = $(cells[0]).text().trim();
+          const volText = $(cells[2]).text().trim();
+          const volValue = parseFloat(volText);
+          if (!isNaN(volValue)) {
+            // Table rows are newest-first, so first match is latest
+            if (!latest) {
+              latest = { volume: volValue, timestamp: dateStr };
+            }
+          }
+        }
+      });
+
+      return latest;
+    } catch (error) {
+      return null;
+    }
+  }
 }
 
 module.exports = DataParser;

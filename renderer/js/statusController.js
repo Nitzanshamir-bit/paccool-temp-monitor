@@ -9,6 +9,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   const errorMessage = document.getElementById('errorMessage');
   const errorText = document.getElementById('errorText');
 
+  // Check if dealer is viewing a specific farm
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get('userId');
+  const farmName = params.get('farmName');
+
+  // Add "back to farms" link and update nav if dealer viewing a farm
+  if (userId) {
+    const nav = document.querySelector('.flex.gap-1');
+    if (nav) {
+      const farmsTab = document.createElement('a');
+      farmsTab.href = '/farms';
+      farmsTab.className = 'px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100';
+      farmsTab.textContent = 'רפתות';
+      nav.appendChild(farmsTab);
+    }
+    // Update graphs link to pass userId
+    const graphsLink = document.querySelector('a[href="/graphs"]');
+    if (graphsLink) {
+      graphsLink.href = `/graphs?userId=${userId}&farmName=${encodeURIComponent(farmName || '')}`;
+    }
+  }
+
   await loadTemperatureData();
 
   refreshBtn.addEventListener('click', async () => {
@@ -29,7 +51,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     hideError();
 
     try {
-      const response = await fetch('/api/temperature', { credentials: 'include' });
+      const apiUrl = userId ? `/api/temperature?userId=${userId}` : '/api/temperature';
+      const response = await fetch(apiUrl, { credentials: 'include' });
       const result = await response.json();
 
       if (result.success && result.tanks) {
@@ -67,14 +90,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function createTankCard(data, totalTanks) {
     const temp = formatTemperature(data.temperature);
+    const volume = data.volume != null ? `${data.volume} L` : '';
     const status = translateStatus(data.status);
     const model = data.model === 'VM/DX' ? 'סילו VM/DX' : (data.model || '--');
     const message = translateMessage(data.message);
     const serial = data.serial || '';
-    const tankName = data.tankName || 'לא ידוע';
+    const tankName = translateTankName(data.tankName) || 'לא ידוע';
     const timestamp = data.timestamp ? data.timestamp.trim() : '--';
+    const volTimestamp = data.volumeTimestamp ? data.volumeTimestamp.trim() : '';
+    const lastUpdate = volTimestamp || timestamp;
 
-    const maxWidth = totalTanks === 1 ? 'max-w-[550px] w-full' : 'w-full';
+    const maxWidth = totalTanks === 1 ? 'max-w-[600px] w-full' : 'w-full';
 
     return `
       <div class="${maxWidth}">
@@ -84,12 +110,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p class="text-xs sm:text-sm text-gray-500">${serial ? 'מספר סידורי: ' + serial : ''}</p>
         </div>
 
-        <!-- Temperature Display -->
-        <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 text-center mb-4">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-600 mb-3">טמפרטורה נוכחית</h3>
-          <div class="text-5xl sm:text-7xl font-black text-blue-600 mb-3 leading-none">${temp}</div>
-          <p class="text-sm text-gray-500">עדכון אחרון: ${timestamp}</p>
+        <!-- Temperature + Volume Display -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col items-center justify-center">
+            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-3">טמפרטורה נוכחית</h3>
+            <div class="text-4xl sm:text-6xl font-black text-blue-600 mb-3 leading-none">${temp}</div>
+          </div>
+          <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col items-center justify-center">
+            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-3">כמות חלב</h3>
+            <div class="text-4xl sm:text-6xl font-black text-blue-600 mb-3 leading-none" dir="ltr">${volume}</div>
+          </div>
         </div>
+
+        <!-- Last Update - single row -->
+        <p class="text-xs sm:text-sm text-gray-500 text-center mb-4">עדכון: ${lastUpdate}</p>
 
         <!-- Info Cards -->
         <div class="grid grid-cols-3 gap-3 mb-6">
@@ -129,6 +163,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       'ALARM': 'אזעקה'
     };
     return translations[status.toUpperCase()] || status;
+  }
+
+  function translateTankName(name) {
+    if (!name) return null;
+    const farmNames = {
+      'Maanit': 'מענית',
+      'Hhrefet': 'חרפת'
+    };
+    const cleaned = name.replace(/dairy\s*farm/i, '').trim();
+    const translated = farmNames[cleaned] || cleaned;
+    return 'רפת ' + translated;
   }
 
   function translateMessage(msg) {

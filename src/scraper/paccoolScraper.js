@@ -19,12 +19,143 @@ class PaccoolScraper {
 
     if (result.success) {
       this.isAuthenticated = true;
-      console.log('[PaccoolScraper] Login successful, tanks:', result.tankCount);
+      if (result.isDealer) {
+        console.log('[PaccoolScraper] Dealer login successful, farms:', result.farmCount);
+      } else {
+        console.log('[PaccoolScraper] Login successful, tanks:', result.tankCount);
+      }
     } else {
       this.isAuthenticated = false;
     }
 
     return result;
+  }
+
+  isDealer() {
+    return this.authManager.isDealer();
+  }
+
+  getFarms() {
+    return this.authManager.getFarms();
+  }
+
+  /**
+   * Get temperature data for a specific farm (dealer mode).
+   * Discovers the farm's tanks and fetches their data.
+   */
+  async getFarmTanksData(userId) {
+    if (!this.isAuthenticated) {
+      return { success: false, error: 'Not authenticated.' };
+    }
+
+    try {
+      const isValid = await this.authManager.validateSession();
+      if (!isValid) {
+        this.isAuthenticated = false;
+        return { success: false, error: 'Session expired', sessionExpired: true };
+      }
+
+      const tanks = await this.authManager.discoverFarmTanks(userId);
+      if (!tanks || tanks.length === 0) {
+        return { success: false, error: 'No tanks found for this farm' };
+      }
+
+      const client = this.authManager.getClient();
+      const tanksData = [];
+
+      for (const tank of tanks) {
+        const tankData = {
+          tankName: tank.name || 'Unknown',
+          model: tank.model || '--',
+          serial: tank.serial,
+          temperature: tank.temperature || '--',
+          timestamp: tank.timestamp || '--',
+          status: tank.status || '--',
+          message: tank.message || '--'
+        };
+
+        // Fetch latest volume
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const filename = this._dateToFilename(today);
+          const postUrl = `${this.config.baseUrl}/${this.config.locale}/post`;
+          const tableResp = await client.get(postUrl, {
+            params: { filename, serial: tank.serial },
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }
+          });
+          if (tableResp.status === 200 && typeof tableResp.data === 'string') {
+            const latestVol = this.dataParser.getLatestVolume(tableResp.data);
+            if (latestVol) {
+              tankData.volume = latestVol.volume;
+              tankData.volumeTimestamp = latestVol.timestamp;
+            }
+          }
+        } catch (volErr) {
+          // Volume not available
+        }
+
+        tanksData.push(tankData);
+      }
+
+      return { success: true, tanks: tanksData };
+    } catch (error) {
+      console.error('[PaccoolScraper] Farm tanks error:', error.message);
+      return { success: false, error: 'Failed to fetch farm data.' };
+    }
+  }
+
+  /**
+   * Get graph data for a specific farm's tanks (dealer mode).
+   */
+  async getFarmGraphData(userId, dateStr) {
+    if (!this.isAuthenticated) {
+      return { success: false, error: 'Not authenticated.' };
+    }
+
+    try {
+      const isValid = await this.authManager.validateSession();
+      if (!isValid) {
+        this.isAuthenticated = false;
+        return { success: false, error: 'Session expired', sessionExpired: true };
+      }
+
+      const tanks = await this.authManager.discoverFarmTanks(userId);
+      const client = this.authManager.getClient();
+      const results = [];
+
+      for (const tank of tanks) {
+        // Visit tank detail to establish context
+        await client.get(tank.detailUrl);
+
+        const filename = this._dateToFilename(dateStr);
+        const postUrl = `${this.config.baseUrl}/${this.config.locale}/post`;
+
+        try {
+          const response = await client.get(postUrl, {
+            params: { filename, serial: tank.serial },
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }
+          });
+
+          if (response.status === 200 && typeof response.data === 'string') {
+            const graphData = this.dataParser.parseTableDataForGraph(response.data);
+            results.push({
+              serial: tank.serial,
+              name: tank.name || 'Unknown',
+              ...graphData
+            });
+          } else {
+            results.push({ serial: tank.serial, name: tank.name || 'Unknown', temps: [], volume: [] });
+          }
+        } catch (e) {
+          results.push({ serial: tank.serial, name: tank.name || 'Unknown', temps: [], volume: [] });
+        }
+      }
+
+      return { success: true, date: dateStr, tanks: results };
+    } catch (error) {
+      console.error('[PaccoolScraper] Farm graph error:', error.message);
+      return { success: false, error: 'Failed to fetch graph data.' };
+    }
   }
 
   /**
@@ -55,28 +186,45 @@ class PaccoolScraper {
           const response = await client.get(tank.detailUrl);
           const data = this.dataParser.parseTemperatureData(response.data);
 
-          if (data) {
-            tanksData.push({
-              tankName: data.tankName,
-              model: data.model,
-              serial: data.serial,
-              temperature: data.temperature,
-              timestamp: data.timestamp,
-              status: data.status,
-              message: data.message
+          const tankData = data ? {
+            tankName: data.tankName,
+            model: data.model,
+            serial: data.serial,
+            temperature: data.temperature,
+            timestamp: data.timestamp,
+            status: data.status,
+            message: data.message
+          } : {
+            tankName: tank.name || 'Unknown',
+            model: tank.model || '--',
+            serial: tank.serial,
+            temperature: tank.temperature || '--',
+            timestamp: tank.timestamp || '--',
+            status: tank.status || '--',
+            message: tank.message || '--'
+          };
+
+          // Fetch latest volume from today's table data
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const filename = this._dateToFilename(today);
+            const postUrl = `${this.config.baseUrl}/${this.config.locale}/post`;
+            const tableResp = await client.get(postUrl, {
+              params: { filename, serial: tank.serial },
+              headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }
             });
-          } else {
-            // Use cached data from discovery
-            tanksData.push({
-              tankName: tank.name || 'Unknown',
-              model: tank.model || '--',
-              serial: tank.serial,
-              temperature: tank.temperature || '--',
-              timestamp: tank.timestamp || '--',
-              status: tank.status || '--',
-              message: tank.message || '--'
-            });
+            if (tableResp.status === 200 && typeof tableResp.data === 'string') {
+              const latestVol = this.dataParser.getLatestVolume(tableResp.data);
+              if (latestVol) {
+                tankData.volume = latestVol.volume;
+                tankData.volumeTimestamp = latestVol.timestamp;
+              }
+            }
+          } catch (volErr) {
+            // Volume not available - that's ok
           }
+
+          tanksData.push(tankData);
         } catch (error) {
           console.error(`[PaccoolScraper] Error fetching tank ${tank.serial}:`, error.message);
           tanksData.push({
