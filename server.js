@@ -275,7 +275,7 @@ app.listen(PORT, () => {
   // Keep-alive: ping ourselves every 14 minutes to prevent Render spin-down
   const KEEP_ALIVE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
   setInterval(() => {
-    const http = require('http');
-    http.get(`${KEEP_ALIVE_URL}/api/ping`, () => {}).on('error', () => {});
+    const mod = KEEP_ALIVE_URL.startsWith('https') ? require('https') : require('http');
+    mod.get(`${KEEP_ALIVE_URL}/api/ping`, () => {}).on('error', () => {});
   }, 14 * 60 * 1000);
 });
