@@ -113,11 +113,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     chartsContainer.innerHTML = `<div class="${gridClass}">${tanks.map((t, i) => `
       <div class="w-full">
         <div class="bg-white sm:rounded-xl shadow-lg px-0 py-2 sm:p-6">
-          <h3 class="text-base sm:text-lg font-bold text-gray-800 text-center mb-1 sm:mb-4">${translateTankName(t.name) || t.serial}</h3>
-          <div class="relative" style="height: 400px;">
+          <h3 class="text-sm sm:text-lg font-bold text-gray-800 text-center mb-0 sm:mb-4">${translateTankName(t.name) || t.serial}</h3>
+          <div class="relative" style="height: ${window.innerWidth < 640 ? '60vh' : '400px'};">
             <canvas id="chart-${i}"></canvas>
           </div>
-          <p class="text-xs text-gray-400 text-center mt-1">מספר סידורי: ${t.serial}</p>
+          <p class="text-xs text-gray-400 text-center mt-1 hidden sm:block">מספר סידורי: ${t.serial}</p>
         </div>
       </div>
     `).join('')}</div>`;
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           display: false
         },
         ticks: {
-          font: { family: 'Rubik', size: isMobile ? 9 : 12 },
+          font: { family: 'Rubik', size: isMobile ? 8 : 12 },
           maxTicksLimit: isMobile ? 6 : 12
         }
       },
@@ -210,8 +210,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         ticks: {
           color: 'rgba(34, 197, 94, 1)',
-          font: { family: 'Rubik', size: isMobile ? 9 : 12 },
-          callback: (v) => isMobile ? v + '°' : v + '°C'
+          font: { family: 'Rubik', size: isMobile ? 8 : 12 },
+          callback: (v) => isMobile ? v + '°' : v + '°C',
+          maxTicksLimit: isMobile ? 6 : 10
         },
         grid: {
           drawOnChartArea: !hasVolume
@@ -231,8 +232,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         ticks: {
           color: 'rgba(59, 130, 246, 1)',
-          font: { family: 'Rubik', size: isMobile ? 9 : 12 },
-          callback: (v) => isMobile ? (v >= 1000 ? (v / 1000) + 'K' : v) : v + ' L'
+          font: { family: 'Rubik', size: isMobile ? 8 : 12 },
+          callback: (v) => isMobile ? (v >= 1000 ? (v / 1000) + 'K' : v) : v + ' L',
+          maxTicksLimit: isMobile ? 6 : 10
         },
         grid: {
           drawOnChartArea: true
