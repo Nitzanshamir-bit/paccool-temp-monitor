@@ -83,8 +83,13 @@ app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 // === Pages ===
 
 app.get('/', async (req, res) => {
+  // If already authenticated, redirect to the app
+  if (req.session.isAuthenticated) {
+    return res.redirect(req.session.isDealer ? '/farms' : '/status');
+  }
+
   // Auto-login if remember cookie exists and no active session
-  if (!req.session.isAuthenticated && req.cookies && req.cookies.remember_token) {
+  if (req.cookies && req.cookies.remember_token) {
     const creds = decryptCreds(req.cookies.remember_token);
     if (creds) {
       const scraper = getScraper(req);
@@ -206,6 +211,8 @@ app.get('/api/temperature', async (req, res) => {
       } else {
         result = await scraper.getAllTanksData();
       }
+    } else {
+      req.session.isAuthenticated = false;
     }
   }
 
@@ -250,6 +257,8 @@ app.get('/api/graph/:serial', async (req, res) => {
     const relogged = await tryAutoRelogin(req, scraper);
     if (relogged) {
       result = await scraper.getGraphData(serial, date);
+    } else {
+      req.session.isAuthenticated = false;
     }
   }
 
@@ -282,6 +291,8 @@ app.get('/api/graphs', async (req, res) => {
       } else {
         result = await scraper.getAllTanksGraphData(date);
       }
+    } else {
+      req.session.isAuthenticated = false;
     }
   }
 
@@ -304,6 +315,28 @@ app.get('/api/credentials', (req, res) => {
 app.delete('/api/credentials', (req, res) => {
   res.clearCookie('remember_token');
   res.json({ success: true });
+});
+
+// Auto-login using stored cookie credentials
+app.post('/api/auto-login', async (req, res) => {
+  const token = req.cookies && req.cookies.remember_token;
+  if (!token) return res.json({ success: false });
+
+  const creds = decryptCreds(token);
+  if (!creds) return res.json({ success: false });
+
+  const scraper = getScraper(req);
+  const result = await scraper.login(creds.email, creds.password);
+
+  if (result.success) {
+    req.session.isAuthenticated = true;
+    req.session.isDealer = result.isDealer || false;
+    return req.session.save(() => res.json(result));
+  }
+
+  // Login failed - clear bad cookie
+  res.clearCookie('remember_token');
+  res.json({ success: false });
 });
 
 // Start server

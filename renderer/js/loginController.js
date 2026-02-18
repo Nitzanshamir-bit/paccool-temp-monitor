@@ -35,21 +35,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function checkStoredCredentials() {
     try {
       const response = await fetch('/api/credentials', {
-        credentials: 'include' // Include cookies in request
+        credentials: 'include'
       });
       const result = await response.json();
 
       if (result.success && result.credentials) {
-        // Show quick login option
-        quickLoginSection.classList.remove('hidden');
-
-        // Pre-fill email if available
+        // Pre-fill email
         if (result.credentials.email) {
           usernameInput.value = result.credentials.email;
         }
+
+        // Try auto-login using stored credentials
+        setLoadingState(true);
+        const autoResp = await fetch('/api/auto-login', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        const autoResult = await autoResp.json();
+
+        if (autoResult.success) {
+          // Auto-login worked - redirect
+          window.location.href = autoResult.isDealer ? '/farms' : '/status';
+          return;
+        }
+
+        // Auto-login failed - show form with email pre-filled
+        setLoadingState(false);
+        quickLoginSection.classList.remove('hidden');
       }
     } catch (error) {
       console.error('Error checking stored credentials:', error);
+      setLoadingState(false);
     }
   }
 
