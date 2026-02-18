@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     chartsContainer.innerHTML = `<div class="${gridClass}">${tanks.map((t, i) => `
       <div class="w-full">
         <div class="bg-white sm:rounded-xl shadow-lg px-0 py-2 sm:p-6">
-          <h3 class="text-base sm:text-lg font-bold text-gray-800 text-center mb-1 sm:mb-4">${t.name || t.serial}</h3>
+          <h3 class="text-base sm:text-lg font-bold text-gray-800 text-center mb-1 sm:mb-4">${translateTankName(t.name) || t.serial}</h3>
           <div class="relative" style="height: 400px;">
             <canvas id="chart-${i}"></canvas>
           </div>
@@ -147,6 +147,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const datasets = [];
 
+    const isMobile = window.innerWidth < 640;
+
     // Volume dataset - BLUE filled area (added first so it renders behind)
     if (hasVolume) {
       datasets.push({
@@ -157,7 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         fill: true,
         yAxisID: 'yVolume',
         pointRadius: 0,
-        borderWidth: 2,
+        borderWidth: isMobile ? 1.5 : 2,
         tension: 0.3,
         order: 2
       });
@@ -173,13 +175,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         fill: false,
         yAxisID: 'yTemp',
         pointRadius: 0,
-        borderWidth: 2.5,
+        borderWidth: isMobile ? 1.5 : 2.5,
         tension: 0.3,
         order: 1
       });
     }
-
-    const isMobile = window.innerWidth < 640;
 
     const scales = {
       x: {
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ticks: {
           color: 'rgba(59, 130, 246, 1)',
           font: { family: 'Rubik', size: isMobile ? 9 : 12 },
-          callback: (v) => isMobile ? v : v + ' L'
+          callback: (v) => isMobile ? (v >= 1000 ? (v / 1000) + 'K' : v) : v + ' L'
         },
         grid: {
           drawOnChartArea: true
@@ -255,9 +255,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         plugins: {
           title: {
-            display: true,
+            display: !isMobile,
             text: hasVolume ? 'טמפרטורה ונפח חלב' : 'טמפרטורה',
-            font: { family: 'Rubik', size: isMobile ? 13 : 16, weight: 'bold' }
+            font: { family: 'Rubik', size: 16, weight: 'bold' }
           },
           legend: {
             rtl: true,
@@ -311,6 +311,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         </svg>
         <p class="text-gray-500">טוען גרפים...</p>
       </div>`;
+  }
+
+  function translateTankName(name) {
+    if (!name) return null;
+    const farmNames = {
+      'Maanit': 'מענית',
+      'Hhrefet': 'חרפת',
+      'Reffet Nahall oz': 'נחל עוז',
+      'DOR DAVID': 'דור דוד',
+      'Navi': 'נווה'
+    };
+    const cleaned = name.replace(/dairy\s*farm/i, '').trim();
+    const translated = farmNames[cleaned] || cleaned;
+    return 'רפת ' + translated;
   }
 
   function showError(message) {
