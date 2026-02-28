@@ -237,9 +237,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           color: 'rgba(59, 130, 246, 1)',
           font: { family: 'Rubik', size: isMobile ? 11 : 12, weight: 'bold' },
           callback: (v) => v >= 1000 ? (v / 1000) + 'K' : v,
-          maxTicksLimit: isMobile ? 5 : 10
+          maxTicksLimit: isMobile ? 5 : 10,
+          mirror: isMobile,
+          padding: isMobile ? 4 : 0
         },
-        afterFit: isMobile ? (scale) => { scale.width = 28; } : undefined,
+        afterFit: isMobile ? (scale) => { scale.width = 0; } : undefined,
         grid: {
           drawOnChartArea: true
         }
