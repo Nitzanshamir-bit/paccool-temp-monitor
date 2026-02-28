@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const curr = data[i];
       if (curr.y == null || prev.y == null) { result.push(curr); continue; }
       const mins = (curr.x.getTime() - prev.x.getTime()) / 60000;
-      if (mins > 0 && mins < 30 && Math.abs(curr.y - prev.y) > 1) {
+      if (mins > 0 && mins < 30 && Math.abs(curr.y - prev.y) > 2) {
         result.push({ x: curr.x, y: prev.y }); // reject spike, hold previous
       } else {
         result.push(curr);
