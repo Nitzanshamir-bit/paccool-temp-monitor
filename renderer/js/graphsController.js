@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function smoothTempData(data) {
-    // If temp changes more than 1°C in less than 5 minutes, keep the lower value
+    // If temp jumps more than 1°C in less than 30 min, hold the previous stable value
     if (data.length < 2) return data;
     const result = [data[0]];
     for (let i = 1; i < data.length; i++) {
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (curr.y == null || prev.y == null) { result.push(curr); continue; }
       const mins = (curr.x.getTime() - prev.x.getTime()) / 60000;
       if (mins > 0 && mins < 30 && Math.abs(curr.y - prev.y) > 1) {
-        result.push({ x: curr.x, y: Math.min(curr.y, prev.y) });
+        result.push({ x: curr.x, y: prev.y }); // reject spike, hold previous
       } else {
         result.push(curr);
       }
