@@ -106,18 +106,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    const isMobileDevice = Math.min(window.innerWidth, window.innerHeight) < 640;
+    const isLandscape = window.innerWidth > window.innerHeight;
+
+    const chartHeight = !isMobileDevice ? '450px'
+      : isLandscape ? 'calc(100dvh - 45px)'
+      : 'calc(100dvh - 115px)';
+
+    const cardClass = isMobileDevice
+      ? `bg-white shadow-lg px-0 ${isLandscape ? 'py-0' : 'py-1'}`
+      : 'bg-white rounded-xl shadow-lg p-6';
+
     const gridClass = tanks.length === 1
-      ? 'flex justify-center'
+      ? 'grid grid-cols-1'
       : 'grid grid-cols-1 lg:grid-cols-2 gap-6';
 
     chartsContainer.innerHTML = `<div class="${gridClass}">${tanks.map((t, i) => `
       <div class="w-full">
-        <div class="bg-white sm:rounded-xl shadow-lg px-0 py-2 sm:p-6">
-          <h3 class="text-sm sm:text-lg font-bold text-gray-800 text-center mb-0 sm:mb-4">${translateTankName(t.name) || t.serial}</h3>
-          <div class="relative" style="height: ${window.innerWidth < 640 ? '60vh' : '400px'};">
+        <div class="${cardClass}">
+          ${!(isMobileDevice && isLandscape) ? `<h3 class="text-sm font-bold text-gray-800 text-center mb-0">${translateTankName(t.name) || t.serial}</h3>` : ''}
+          <div class="relative" style="height: ${chartHeight};">
             <canvas id="chart-${i}"></canvas>
           </div>
-          <p class="text-xs text-gray-400 text-center mt-1 hidden sm:block">מספר סידורי: ${t.serial}</p>
+          ${!isMobileDevice ? `<p class="text-xs text-gray-400 text-center mt-1">מספר סידורי: ${t.serial}</p>` : ''}
         </div>
       </div>
     `).join('')}</div>`;
@@ -157,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const datasets = [];
 
-    const isMobile = window.innerWidth < 640;
+    const isMobile = Math.min(window.innerWidth, window.innerHeight) < 640;
 
     // Volume dataset - BLUE filled area (added first so it renders behind)
     if (hasVolume) {
@@ -221,7 +232,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           callback: (v) => v + '°',
           maxTicksLimit: isMobile ? 5 : 10
         },
-        afterFit: isMobile ? (scale) => { scale.width = 32; } : undefined,
+        afterFit: (scale) => { scale.width = isMobile ? 32 : 45; },
         grid: {
           drawOnChartArea: !hasVolume
         }
@@ -241,7 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           mirror: isMobile,
           padding: isMobile ? 4 : 0
         },
-        afterFit: isMobile ? (scale) => { scale.width = 0; } : undefined,
+        afterFit: (scale) => { scale.width = isMobile ? 0 : 45; },
         grid: {
           drawOnChartArea: true
         }
