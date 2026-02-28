@@ -106,39 +106,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `
       <div class="${maxWidth}">
         <!-- Tank Header -->
-        <div class="mb-3 text-center">
-          <h2 class="text-xl sm:text-2xl font-bold text-gray-800">${tankName}</h2>
-          <p class="text-xs sm:text-sm text-gray-500">${serial ? 'מספר סידורי: ' + serial : ''}</p>
+        <div class="mb-2 text-center">
+          <h2 class="text-lg sm:text-2xl font-bold text-gray-800">${tankName}</h2>
+          <p class="text-xs text-gray-500">${serial ? 'מספר סידורי: ' + serial : ''}</p>
         </div>
 
         <!-- Temperature + Volume Display -->
-        <div class="flex flex-col gap-4 mb-4">
-          <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col items-center justify-center">
-            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-2">טמפרטורה נוכחית</h3>
-            <div class="text-6xl sm:text-8xl font-black text-blue-600 leading-none">${temp}</div>
+        <div class="flex flex-col gap-2 mb-2">
+          <div class="bg-white rounded-2xl shadow-lg p-3 sm:p-6 flex flex-col items-center justify-center">
+            <h3 class="text-xs sm:text-base font-semibold text-gray-600 mb-1">טמפרטורה נוכחית</h3>
+            <div class="text-5xl sm:text-7xl font-black text-blue-600 leading-none">${temp}</div>
           </div>
-          <div class="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 flex flex-col items-center justify-center">
-            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-2">כמות חלב</h3>
-            <div class="text-6xl sm:text-8xl font-black text-blue-600 leading-none" dir="ltr">${volume}</div>
+          <div class="bg-white rounded-2xl shadow-lg p-3 sm:p-6 flex flex-col items-center justify-center">
+            <h3 class="text-xs sm:text-base font-semibold text-gray-600 mb-1">כמות חלב</h3>
+            <div class="text-5xl sm:text-7xl font-black text-blue-600 leading-none" dir="ltr">${volume}</div>
           </div>
         </div>
 
         <!-- Last Update - single row -->
-        <p class="text-xs sm:text-sm text-gray-500 text-center mb-4">עדכון: ${lastUpdate}</p>
+        <p class="text-xs text-gray-500 text-center mb-2">עדכון: ${lastUpdate}</p>
 
         <!-- Info Cards -->
-        <div class="grid grid-cols-3 gap-3 mb-6">
-          <div class="bg-white rounded-lg shadow-lg p-4 text-center">
-            <h4 class="text-sm font-semibold text-gray-700 mb-2">סטטוס</h4>
-            <p class="text-lg font-medium text-gray-800">${status}</p>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <div class="bg-white rounded-lg shadow p-2 text-center">
+            <h4 class="text-xs font-semibold text-gray-700 mb-1">סטטוס</h4>
+            <p class="text-sm font-medium text-gray-800">${status}</p>
           </div>
-          <div class="bg-white rounded-lg shadow-lg p-4 text-center">
-            <h4 class="text-sm font-semibold text-gray-700 mb-2">דגם</h4>
-            <p class="text-lg font-medium text-gray-800">${model}</p>
+          <div class="bg-white rounded-lg shadow p-2 text-center">
+            <h4 class="text-xs font-semibold text-gray-700 mb-1">דגם</h4>
+            <p class="text-sm font-medium text-gray-800">${model}</p>
           </div>
-          <div class="bg-white rounded-lg shadow-lg p-4 text-center">
-            <h4 class="text-sm font-semibold text-gray-700 mb-2">מצב מערכת</h4>
-            <p class="text-base text-gray-800">${message}</p>
+          <div class="bg-white rounded-lg shadow p-2 text-center">
+            <h4 class="text-xs font-semibold text-gray-700 mb-1">מצב מערכת</h4>
+            <p class="text-xs text-gray-800">${message}</p>
           </div>
         </div>
       </div>
