@@ -166,6 +166,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const hasVolume = volumeData.length > 0;
 
+    // Compute actual data range so X-axis starts/ends at first/last data point
+    const allTs = [...tempData, ...volumeData].map(d => d.x.getTime()).filter(Boolean);
+    const xMin = allTs.length ? Math.min(...allTs) : undefined;
+    const xMax = allTs.length ? Math.max(...allTs) : undefined;
+
     const datasets = [];
 
     const isMobile = Math.min(window.innerWidth, window.innerHeight) < 640;
@@ -205,6 +210,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const scales = {
       x: {
         type: 'time',
+        min: xMin,
+        max: xMax,
         time: {
           unit: 'hour',
           displayFormats: {
