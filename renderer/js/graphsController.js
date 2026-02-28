@@ -154,12 +154,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     return data.filter(d => d.y == null || (Math.abs(d.y - median) <= 3 && d.y >= 0 && d.y <= 15));
   }
 
+  function smoothTempData(data) {
+    // If temp changes more than 1°C in less than 5 minutes, keep the lower value
+    if (data.length < 2) return data;
+    const result = [data[0]];
+    for (let i = 1; i < data.length; i++) {
+      const prev = result[result.length - 1];
+      const curr = data[i];
+      if (curr.y == null || prev.y == null) { result.push(curr); continue; }
+      const mins = (curr.x.getTime() - prev.x.getTime()) / 60000;
+      if (mins > 0 && mins < 5 && Math.abs(curr.y - prev.y) > 1) {
+        result.push({ x: curr.x, y: Math.min(curr.y, prev.y) });
+      } else {
+        result.push(curr);
+      }
+    }
+    return result;
+  }
+
   function createDualAxisChart(canvas, tank, dateStr) {
     const rawTempData = (tank.temps || []).map(d => ({
       x: new Date(d.timestamp),
       y: d.temperature
     }));
-    const tempData = filterTempOutliers(rawTempData);
+    const tempData = smoothTempData(filterTempOutliers(rawTempData));
 
     const volumeData = (tank.volume || []).map(d => ({
       x: new Date(d.timestamp),
