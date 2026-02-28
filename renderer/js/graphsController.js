@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           callback: (v) => v >= 1000 ? (v / 1000) + 'K' : v,
           maxTicksLimit: isMobile ? 5 : 10
         },
-        afterFit: isMobile ? (scale) => { scale.width = 36; } : undefined,
+        afterFit: isMobile ? (scale) => { scale.width = 28; } : undefined,
         grid: {
           drawOnChartArea: true
         }
