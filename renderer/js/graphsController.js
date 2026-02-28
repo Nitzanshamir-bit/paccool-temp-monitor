@@ -132,11 +132,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  function filterTempOutliers(data) {
+    if (data.length < 3) return data;
+    const vals = data.map(d => d.y).filter(v => v != null && isFinite(v)).sort((a, b) => a - b);
+    if (!vals.length) return data;
+    const median = vals[Math.floor(vals.length / 2)];
+    return data.filter(d => d.y == null || (Math.abs(d.y - median) <= 8 && d.y >= -5 && d.y <= 40));
+  }
+
   function createDualAxisChart(canvas, tank, dateStr) {
-    const tempData = (tank.temps || []).map(d => ({
+    const rawTempData = (tank.temps || []).map(d => ({
       x: new Date(d.timestamp),
       y: d.temperature
     }));
+    const tempData = filterTempOutliers(rawTempData);
 
     const volumeData = (tank.volume || []).map(d => ({
       x: new Date(d.timestamp),
@@ -202,6 +211,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       yTemp: {
         type: 'linear',
         position: 'right',
+        min: tempData.length ? Math.floor(Math.min(...tempData.map(d => d.y)) - 1) : 0,
+        max: tempData.length ? Math.ceil(Math.max(...tempData.map(d => d.y)) + 1) : 30,
         title: {
           display: !isMobile,
           text: 'טמפרטורה (°C)',
