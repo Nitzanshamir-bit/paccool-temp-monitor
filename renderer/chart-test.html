@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
+    body { font-family: 'Rubik', sans-serif; }
+  </style>
+</head>
+<body class="bg-blue-50 min-h-screen p-4">
+
+  <h1 class="text-center text-xl font-bold mb-4">Chart Centering Test</h1>
+
+  <!-- The chart card - same structure as the app -->
+  <div id="chartCard" class="bg-white rounded-xl shadow-lg p-4" style="width:100%;box-sizing:border-box;">
+    <h3 class="text-sm font-bold text-gray-800 text-center mb-1">רפת מענית</h3>
+    <div style="position:relative;height:400px;width:100%;">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
+
+  <div class="mt-4 text-center text-xs text-gray-500">
+    Canvas width: <span id="canvasWidth">-</span>px |
+    Card width: <span id="cardWidth">-</span>px
+  </div>
+
+  <script>
+    // Dummy data: temperature + volume over ~12 hours
+    const base = new Date('2026-02-28T01:00:00');
+    const tempData = [];
+    const volumeData = [];
+
+    for (let i = 0; i <= 144; i++) {
+      const t = new Date(base.getTime() + i * 5 * 60 * 1000); // every 5 min
+      // Temperature: starts ~3°C, rises slightly
+      tempData.push({ x: t, y: +(3 + Math.sin(i / 20) * 0.5 + i * 0.01).toFixed(2) });
+      // Volume: starts 7500, rises to 11000, then drops
+      const v = i < 60 ? 7500 + i * 50 : 10500 - (i - 60) * 30;
+      volumeData.push({ x: t, y: Math.max(6000, Math.round(v)) });
+    }
+
+    const allTs = [...tempData, ...volumeData].map(d => d.x.getTime());
+    const xMin = Math.min(...allTs);
+    const xMax = Math.max(...allTs);
+
+    const isMobile = Math.min(window.innerWidth, window.innerHeight) < 640;
+
+    const ctx = document.getElementById('myChart');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'נפח חלב (ליטר)',
+            data: volumeData,
+            borderColor: 'rgba(59,130,246,0.8)',
+            backgroundColor: 'rgba(59,130,246,0.15)',
+            fill: true,
+            yAxisID: 'yVolume',
+            pointRadius: 0,
+            borderWidth: 2,
+            tension: 0.3,
+            order: 2
+          },
+          {
+            label: 'טמפרטורה (°C)',
+            data: tempData,
+            borderColor: 'rgba(34,197,94,1)',
+            backgroundColor: 'rgba(34,197,94,0.1)',
+            fill: false,
+            yAxisID: 'yTemp',
+            pointRadius: 0,
+            borderWidth: 2.5,
+            tension: 0.3,
+            order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        layout: {
+          autoPadding: false,
+          padding: { left: 0, right: 0, top: 2, bottom: 0 }
+        },
+        plugins: {
+          legend: {
+            rtl: true,
+            labels: { font: { family: 'Rubik', size: 12 }, usePointStyle: true }
+          },
+          title: { display: false }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            min: xMin,
+            max: xMax,
+            time: { unit: 'hour', displayFormats: { hour: 'HH:mm' }, tooltipFormat: 'HH:mm' },
+            title: { display: false },
+            ticks: {
+              font: { family: 'Rubik', size: isMobile ? 8 : 12 },
+              maxTicksLimit: isMobile ? 6 : 12,
+              align: 'inner'
+            }
+          },
+          yTemp: {
+            type: 'linear',
+            position: 'right',
+            min: 2, max: 5,
+            title: { display: false },
+            ticks: {
+              color: 'rgba(34,197,94,1)',
+              font: { family: 'Rubik', size: isMobile ? 11 : 12, weight: 'bold' },
+              callback: v => v + '°',
+              maxTicksLimit: isMobile ? 5 : 10
+            },
+            afterFit: scale => { scale.width = isMobile ? 40 : 45; },
+            grid: { drawOnChartArea: false }
+          },
+          yVolume: {
+            type: 'linear',
+            position: 'left',
+            title: { display: false },
+            ticks: {
+              color: 'rgba(59,130,246,1)',
+              font: { family: 'Rubik', size: isMobile ? 11 : 12, weight: 'bold' },
+              callback: v => v >= 1000 ? (v/1000) + 'K' : v,
+              maxTicksLimit: isMobile ? 5 : 10,
+              padding: 2
+            },
+            afterFit: scale => { scale.width = isMobile ? 40 : 45; },
+            grid: { drawOnChartArea: true }
+          }
+        }
+      }
+    });
+
+    // Show dimensions for debugging
+    setTimeout(() => {
+      document.getElementById('canvasWidth').textContent = ctx.offsetWidth;
+      document.getElementById('cardWidth').textContent = document.getElementById('chartCard').offsetWidth;
+    }, 500);
+  </script>
+</body>
+</html>
