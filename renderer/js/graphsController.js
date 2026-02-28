@@ -257,7 +257,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           intersect: false
         },
         layout: {
-          padding: { left: 0, right: 0, top: 4, bottom: 0 }
+          autoPadding: false,
+          padding: { left: 0, right: 0, top: 2, bottom: 0 }
         },
         plugins: {
           title: {
