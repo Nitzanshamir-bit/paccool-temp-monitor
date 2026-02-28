@@ -90,7 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function createTankCard(data, totalTanks) {
     const temp = formatTemperature(data.temperature);
-    const volume = data.volume != null ? `${data.volume} L` : '';
+    const volumeNum = data.volume != null ? Number(data.volume).toLocaleString('en-US') : null;
+    const volume = volumeNum != null ? `${volumeNum} L` : '';
     const status = translateStatus(data.status);
     const model = data.model === 'VM/DX' ? 'סילו VM/DX' : (data.model || '--');
     const message = translateMessage(data.message);
@@ -118,7 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 flex flex-col items-center justify-center">
             <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-2">כמות חלב</h3>
-            <div class="text-4xl sm:text-6xl font-black text-blue-600 leading-none" dir="ltr">${volume}</div>
+            <div class="text-6xl sm:text-8xl font-black text-blue-600 leading-none" dir="ltr">${volume}</div>
           </div>
         </div>
 
