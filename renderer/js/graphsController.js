@@ -118,9 +118,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       : 'bg-white rounded-xl shadow-lg p-6';
 
     const cardHtml = tanks.map((t, i) => `
-      <div class="${cardClass}" style="width:100%;box-sizing:border-box;">
+      <div class="${cardClass}" style="overflow:hidden;">
         ${!(isMobileDevice && isLandscape) ? `<h3 class="text-sm font-bold text-gray-800 text-center mb-0">${translateTankName(t.name) || t.serial}</h3>` : ''}
-        <div style="position:relative;height:${chartHeight};width:100%;">
+        <div style="position:relative;height:${chartHeight};direction:ltr;">
           <canvas id="chart-${i}"></canvas>
         </div>
         ${!isMobileDevice ? `<p class="text-xs text-gray-400 text-center mt-1">מספר סידורי: ${t.serial}</p>` : ''}
