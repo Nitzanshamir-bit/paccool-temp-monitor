@@ -111,14 +111,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
 
         <!-- Temperature + Volume Display -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="flex flex-col gap-4 mb-4">
           <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col items-center justify-center">
-            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-3">טמפרטורה נוכחית</h3>
-            <div class="text-4xl sm:text-6xl font-black text-blue-600 mb-3 leading-none">${temp}</div>
+            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-2">טמפרטורה נוכחית</h3>
+            <div class="text-6xl sm:text-8xl font-black text-blue-600 leading-none">${temp}</div>
           </div>
-          <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col items-center justify-center">
-            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-3">כמות חלב</h3>
-            <div class="text-4xl sm:text-6xl font-black text-blue-600 mb-3 leading-none" dir="ltr">${volume}</div>
+          <div class="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 flex flex-col items-center justify-center">
+            <h3 class="text-sm sm:text-base font-semibold text-gray-600 mb-2">כמות חלב</h3>
+            <div class="text-4xl sm:text-6xl font-black text-blue-600 leading-none" dir="ltr">${volume}</div>
           </div>
         </div>
 
