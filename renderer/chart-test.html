@@ -12,12 +12,12 @@
     body { font-family: 'Rubik', sans-serif; }
   </style>
 </head>
-<body class="bg-blue-50 min-h-screen p-4">
+<body class="bg-blue-50 min-h-screen p-0">
 
-  <h1 class="text-center text-xl font-bold mb-4">Chart Centering Test</h1>
+  <h1 class="text-center text-xl font-bold mb-2 pt-2">Chart Centering Test</h1>
 
-  <!-- The chart card - same structure as the app -->
-  <div id="chartCard" class="bg-white rounded-xl shadow-lg p-4" style="overflow:hidden;">
+  <!-- The chart card - same structure as the app, no horizontal padding on mobile -->
+  <div id="chartCard" class="bg-white shadow-lg" style="overflow:hidden;">
     <h3 class="text-sm font-bold text-gray-800 text-center mb-1">רפת מענית</h3>
     <!-- direction:ltr fixes RTL+iOS canvas width bug -->
     <div id="chartContainer" style="position:relative;height:400px;direction:ltr;">
