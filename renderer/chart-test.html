@@ -17,16 +17,18 @@
   <h1 class="text-center text-xl font-bold mb-4">Chart Centering Test</h1>
 
   <!-- The chart card - same structure as the app -->
-  <div id="chartCard" class="bg-white rounded-xl shadow-lg p-4" style="width:100%;box-sizing:border-box;">
+  <div id="chartCard" class="bg-white rounded-xl shadow-lg p-4" style="overflow:hidden;">
     <h3 class="text-sm font-bold text-gray-800 text-center mb-1">רפת מענית</h3>
-    <div style="position:relative;height:400px;width:100%;">
+    <!-- direction:ltr fixes RTL+iOS canvas width bug -->
+    <div id="chartContainer" style="position:relative;height:400px;direction:ltr;">
       <canvas id="myChart"></canvas>
     </div>
   </div>
 
   <div class="mt-4 text-center text-xs text-gray-500">
     Canvas width: <span id="canvasWidth">-</span>px |
-    Card width: <span id="cardWidth">-</span>px
+    Card width: <span id="cardWidth">-</span>px |
+    Container width: <span id="containerWidth">-</span>px
   </div>
 
   <script>
@@ -146,6 +148,7 @@
     setTimeout(() => {
       document.getElementById('canvasWidth').textContent = ctx.offsetWidth;
       document.getElementById('cardWidth').textContent = document.getElementById('chartCard').offsetWidth;
+      document.getElementById('containerWidth').textContent = document.getElementById('chartContainer').offsetWidth;
     }, 500);
   </script>
 </body>
