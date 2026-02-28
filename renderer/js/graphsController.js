@@ -137,7 +137,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const vals = data.map(d => d.y).filter(v => v != null && isFinite(v)).sort((a, b) => a - b);
     if (!vals.length) return data;
     const median = vals[Math.floor(vals.length / 2)];
-    return data.filter(d => d.y == null || (Math.abs(d.y - median) <= 8 && d.y >= -5 && d.y <= 40));
+    // Tight filter: milk cooling stays between 0–15°C, within 3°C of median
+    return data.filter(d => d.y == null || (Math.abs(d.y - median) <= 3 && d.y >= 0 && d.y <= 15));
   }
 
   function createDualAxisChart(canvas, tank, dateStr) {
@@ -211,19 +212,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       yTemp: {
         type: 'linear',
         position: 'right',
-        min: tempData.length ? Math.floor(Math.min(...tempData.map(d => d.y)) - 1) : 0,
-        max: tempData.length ? Math.ceil(Math.max(...tempData.map(d => d.y)) + 1) : 30,
-        title: {
-          display: !isMobile,
-          text: 'טמפרטורה (°C)',
-          color: 'rgba(34, 197, 94, 1)',
-          font: { family: 'Rubik', weight: 'bold' }
-        },
+        min: tempData.length ? Math.floor(Math.min(...tempData.map(d => d.y)) - 0.5) : 0,
+        max: tempData.length ? Math.ceil(Math.max(...tempData.map(d => d.y)) + 0.5) : 15,
+        title: { display: false },
         ticks: {
           color: 'rgba(34, 197, 94, 1)',
-          font: { family: 'Rubik', size: isMobile ? 8 : 12 },
-          callback: (v) => isMobile ? v + '°' : v + '°C',
-          maxTicksLimit: isMobile ? 6 : 10
+          font: { family: 'Rubik', size: isMobile ? 11 : 12, weight: 'bold' },
+          callback: (v) => v + '°',
+          maxTicksLimit: isMobile ? 5 : 10
         },
         grid: {
           drawOnChartArea: !hasVolume
@@ -235,17 +231,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       scales.yVolume = {
         type: 'linear',
         position: 'left',
-        title: {
-          display: !isMobile,
-          text: 'נפח חלב (ליטר)',
-          color: 'rgba(59, 130, 246, 1)',
-          font: { family: 'Rubik', weight: 'bold' }
-        },
+        title: { display: false },
         ticks: {
           color: 'rgba(59, 130, 246, 1)',
-          font: { family: 'Rubik', size: isMobile ? 8 : 12 },
-          callback: (v) => isMobile ? (v >= 1000 ? (v / 1000) + 'K' : v) : v + ' L',
-          maxTicksLimit: isMobile ? 6 : 10
+          font: { family: 'Rubik', size: isMobile ? 11 : 12, weight: 'bold' },
+          callback: (v) => v >= 1000 ? (v / 1000) + 'K' : v,
+          maxTicksLimit: isMobile ? 5 : 10
         },
         grid: {
           drawOnChartArea: true
@@ -264,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           intersect: false
         },
         layout: {
-          padding: isMobile ? { left: 0, right: 0, top: 0, bottom: 0 } : {}
+          padding: { left: 0, right: 0, top: 4, bottom: 0 }
         },
         plugins: {
           title: {
