@@ -258,10 +258,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           font: { family: 'Rubik', size: isMobile ? 11 : 12, weight: 'bold' },
           callback: (v) => v >= 1000 ? (v / 1000) + 'K' : v,
           maxTicksLimit: isMobile ? 5 : 10,
-          mirror: isMobile,
-          padding: isMobile ? 4 : 0
+          padding: 2
         },
-        afterFit: (scale) => { scale.width = isMobile ? 0 : 45; },
+        afterFit: (scale) => { scale.width = 40; },
         grid: {
           drawOnChartArea: true
         }
