@@ -117,21 +117,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? `bg-white shadow-lg px-0 ${isLandscape ? 'py-0' : 'py-1'}`
       : 'bg-white rounded-xl shadow-lg p-6';
 
-    const gridClass = tanks.length === 1
-      ? 'grid grid-cols-1'
-      : 'grid grid-cols-1 lg:grid-cols-2 gap-6';
-
-    chartsContainer.innerHTML = `<div class="${gridClass}">${tanks.map((t, i) => `
-      <div class="w-full">
-        <div class="${cardClass}">
-          ${!(isMobileDevice && isLandscape) ? `<h3 class="text-sm font-bold text-gray-800 text-center mb-0">${translateTankName(t.name) || t.serial}</h3>` : ''}
-          <div class="relative" style="height: ${chartHeight};">
-            <canvas id="chart-${i}"></canvas>
-          </div>
-          ${!isMobileDevice ? `<p class="text-xs text-gray-400 text-center mt-1">מספר סידורי: ${t.serial}</p>` : ''}
+    const cardHtml = tanks.map((t, i) => `
+      <div class="${cardClass}" style="width:100%;box-sizing:border-box;">
+        ${!(isMobileDevice && isLandscape) ? `<h3 class="text-sm font-bold text-gray-800 text-center mb-0">${translateTankName(t.name) || t.serial}</h3>` : ''}
+        <div style="position:relative;height:${chartHeight};width:100%;">
+          <canvas id="chart-${i}"></canvas>
         </div>
+        ${!isMobileDevice ? `<p class="text-xs text-gray-400 text-center mt-1">מספר סידורי: ${t.serial}</p>` : ''}
       </div>
-    `).join('')}</div>`;
+    `).join('');
+
+    if (tanks.length === 1) {
+      chartsContainer.innerHTML = cardHtml;
+    } else {
+      chartsContainer.innerHTML = `<div style="display:grid;grid-template-columns:repeat(1,1fr);gap:1.5rem;width:100%;">
+        ${cardHtml}
+      </div>`;
+    }
 
     // Create charts
     tanks.forEach((tank, i) => {
