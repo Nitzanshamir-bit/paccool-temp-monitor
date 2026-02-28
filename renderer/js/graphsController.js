@@ -226,7 +226,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         ticks: {
           font: { family: 'Rubik', size: isMobile ? 8 : 12 },
-          maxTicksLimit: isMobile ? 6 : 12
+          maxTicksLimit: isMobile ? 6 : 12,
+          align: 'inner'
         }
       },
       yTemp: {
@@ -241,7 +242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           callback: (v) => v + '°',
           maxTicksLimit: isMobile ? 5 : 10
         },
-        afterFit: (scale) => { scale.width = isMobile ? 32 : 45; },
+        afterFit: (scale) => { scale.width = isMobile ? 40 : 45; },
         grid: {
           drawOnChartArea: !hasVolume
         }
