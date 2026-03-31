@@ -310,33 +310,30 @@ app.get('/api/last-washing', async (req, res) => {
   const scraper = getScraper(req);
 
   try {
-    // Get tank list
-    let tanks;
-    if (userId && scraper.isDealer()) {
-      tanks = await scraper.authManager.discoverFarmTanks(userId);
-    } else {
-      tanks = scraper.getTanks() || [];
-    }
+    // Search last 7 days using getAllTanksGraphData (handles tank discovery)
+    for (let d = 0; d < 7; d++) {
+      const date = new Date();
+      date.setDate(date.getDate() - d);
+      const dateStr = date.toISOString().split('T')[0];
 
-    const results = [];
-    // Search last 7 days for each tank
-    for (const tank of tanks) {
-      const serial = tank.serial || tank;
-      let found = null;
-      for (let d = 0; d < 7; d++) {
-        const date = new Date();
-        date.setDate(date.getDate() - d);
-        const dateStr = date.toISOString().split('T')[0];
-        const graphData = await scraper.getGraphData(serial, dateStr);
-        if (!graphData || !graphData.temps) continue;
+      let result;
+      if (userId && scraper.isDealer()) {
+        result = await scraper.getFarmGraphData(userId, dateStr);
+      } else {
+        result = await scraper.getAllTanksGraphData(dateStr);
+      }
 
-        // Find temps > 40°C
-        const washTemps = graphData.temps
+      if (!result.success || !result.tanks) continue;
+
+      // Check each tank for washing temps > 40°C
+      const results = [];
+      for (const tank of result.tanks) {
+        const washTemps = (tank.temps || [])
           .filter(t => t.temperature > 40)
           .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
         if (washTemps.length > 0) {
-          // Get the last consecutive group
+          // Get the last consecutive group of readings above 40°C
           let groupStart = washTemps.length - 1;
           for (let j = washTemps.length - 2; j >= 0; j--) {
             const gap = (new Date(washTemps[j + 1].timestamp) - new Date(washTemps[j].timestamp)) / 60000;
@@ -345,14 +342,16 @@ app.get('/api/last-washing', async (req, res) => {
           }
           const lastGroup = washTemps.slice(groupStart);
           const maxTemp = Math.max(...lastGroup.map(t => t.temperature));
-          found = { maxTemp, date: dateStr, serial, tankName: tank.name || serial };
-          break; // Found most recent washing, stop searching older dates
+          results.push({ maxTemp, date: dateStr, serial: tank.serial, tankName: tank.name || tank.serial });
         }
       }
-      if (found) results.push(found);
+
+      if (results.length > 0) {
+        return res.json({ success: true, washingData: results });
+      }
     }
 
-    res.json({ success: true, washingData: results });
+    res.json({ success: true, washingData: [] });
   } catch (err) {
     res.json({ success: false, error: err.message });
   }
