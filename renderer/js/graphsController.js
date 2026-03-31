@@ -147,39 +147,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-  function filterTempOutliers(data) {
-    if (data.length < 3) return data;
-    const vals = data.map(d => d.y).filter(v => v != null && isFinite(v)).sort((a, b) => a - b);
-    if (!vals.length) return data;
-    const median = vals[Math.floor(vals.length / 2)];
-    // Tight filter: milk cooling stays between 0–15°C, within 3°C of median
-    return data.filter(d => d.y == null || (Math.abs(d.y - median) <= 3 && d.y >= 0 && d.y <= 15));
-  }
-
-  function smoothTempData(data) {
-    // If temp jumps more than 1°C in less than 30 min, hold the previous stable value
-    if (data.length < 2) return data;
-    const result = [data[0]];
-    for (let i = 1; i < data.length; i++) {
-      const prev = result[result.length - 1];
-      const curr = data[i];
-      if (curr.y == null || prev.y == null) { result.push(curr); continue; }
-      const mins = (curr.x.getTime() - prev.x.getTime()) / 60000;
-      if (mins > 0 && mins < 30 && Math.abs(curr.y - prev.y) > 2) {
-        result.push({ x: curr.x, y: prev.y }); // reject spike, hold previous
-      } else {
-        result.push(curr);
-      }
-    }
-    return result;
-  }
-
   function createDualAxisChart(canvas, tank, dateStr) {
     const rawTempData = (tank.temps || []).map(d => ({
       x: new Date(d.timestamp),
       y: d.temperature
     }));
-    const tempData = smoothTempData(filterTempOutliers(rawTempData));
+    const tempData = rawTempData.filter(d => d.y != null && d.y >= 0 && d.y <= 80);
 
     const volumeData = (tank.volume || []).map(d => ({
       x: new Date(d.timestamp),
