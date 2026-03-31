@@ -14,7 +14,7 @@
       container.innerHTML = data.washingData.map(w => {
         const dateObj = new Date(w.date + 'T00:00:00');
         const dateStr = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
-        const isHot = w.maxTemp >= 55;
+        const isHot = w.maxTemp >= 60;
         const bgColor = isHot ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300';
         const textColor = isHot ? 'text-green-700' : 'text-red-700';
         const labelColor = isHot ? 'text-green-600' : 'text-red-600';
