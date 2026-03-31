@@ -299,6 +299,65 @@ app.get('/api/graphs', async (req, res) => {
   res.json(result);
 });
 
+// === API: Last Washing Temperature ===
+
+app.get('/api/last-washing', async (req, res) => {
+  if (!req.session.isAuthenticated) {
+    return res.json({ success: false, error: 'Not authenticated', sessionExpired: true });
+  }
+
+  const userId = req.query.userId;
+  const scraper = getScraper(req);
+
+  try {
+    // Get tank list
+    let tanks;
+    if (userId && scraper.isDealer()) {
+      tanks = await scraper.authManager.discoverFarmTanks(userId);
+    } else {
+      tanks = scraper.getTanks() || [];
+    }
+
+    const results = [];
+    // Search last 7 days for each tank
+    for (const tank of tanks) {
+      const serial = tank.serial || tank;
+      let found = null;
+      for (let d = 0; d < 7; d++) {
+        const date = new Date();
+        date.setDate(date.getDate() - d);
+        const dateStr = date.toISOString().split('T')[0];
+        const graphData = await scraper.getGraphData(serial, dateStr);
+        if (!graphData || !graphData.temps) continue;
+
+        // Find temps > 40°C
+        const washTemps = graphData.temps
+          .filter(t => t.temperature > 40)
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        if (washTemps.length > 0) {
+          // Get the last consecutive group
+          let groupStart = washTemps.length - 1;
+          for (let j = washTemps.length - 2; j >= 0; j--) {
+            const gap = (new Date(washTemps[j + 1].timestamp) - new Date(washTemps[j].timestamp)) / 60000;
+            if (gap > 30) break;
+            groupStart = j;
+          }
+          const lastGroup = washTemps.slice(groupStart);
+          const maxTemp = Math.max(...lastGroup.map(t => t.temperature));
+          found = { maxTemp, date: dateStr, serial, tankName: tank.name || serial };
+          break; // Found most recent washing, stop searching older dates
+        }
+      }
+      if (found) results.push(found);
+    }
+
+    res.json({ success: true, washingData: results });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
 // === API: Credentials ===
 
 app.get('/api/credentials', (req, res) => {

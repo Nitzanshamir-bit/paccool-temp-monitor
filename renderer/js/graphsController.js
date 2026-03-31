@@ -117,25 +117,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? `bg-white shadow-lg px-0 ${isLandscape ? 'py-0' : 'py-1'}`
       : 'bg-white rounded-xl shadow-lg p-6';
 
-    const cardHtml = tanks.map((t, i) => {
-      const washTemp = getWashingMaxTemp(t);
-      const washBox = washTemp != null ? `
-        <div class="flex justify-center my-2">
-          <div class="bg-orange-50 border border-orange-300 rounded-lg px-4 py-2 text-center">
-            <span class="text-xs text-orange-600 font-medium">טמפ׳ שטיפה מקסימלית</span>
-            <span class="text-lg font-black text-orange-700 mr-2">${washTemp.toFixed(1)}°C</span>
-          </div>
-        </div>` : '';
-      return `
+    const cardHtml = tanks.map((t, i) => `
       <div class="${cardClass}" style="overflow:hidden;">
         ${!(isMobileDevice && isLandscape) ? `<h3 class="text-sm font-bold text-gray-800 text-center mb-0">${translateTankName(t.name) || t.serial}</h3>` : ''}
-        ${washBox}
         <div style="position:relative;height:${chartHeight};direction:ltr;">
           <canvas id="chart-${i}"></canvas>
         </div>
         ${!isMobileDevice ? `<p class="text-xs text-gray-400 text-center mt-1">מספר סידורי: ${t.serial}</p>` : ''}
-      </div>`;
-    }).join('');
+      </div>
+    `).join('');
 
     if (tanks.length === 1) {
       chartsContainer.innerHTML = cardHtml;
@@ -155,23 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function getWashingMaxTemp(tank) {
-    // Find the last washing cycle (temp > 40°C) and return its max temperature
-    const temps = (tank.temps || [])
-      .map(d => ({ time: new Date(d.timestamp), temp: d.temperature }))
-      .filter(d => d.temp != null && d.temp > 40)
-      .sort((a, b) => a.time - b.time);
-    if (temps.length === 0) return null;
-    // Find the last consecutive group of readings above 40°C
-    let lastGroupStart = temps.length - 1;
-    for (let i = temps.length - 2; i >= 0; i--) {
-      const gap = (temps[i + 1].time - temps[i].time) / 60000; // minutes
-      if (gap > 30) break; // gap > 30 min = separate washing cycle
-      lastGroupStart = i;
-    }
-    const lastGroup = temps.slice(lastGroupStart);
-    return Math.max(...lastGroup.map(d => d.temp));
-  }
+
 
   function filterTempOutliers(data) {
     if (data.length < 3) return data;
