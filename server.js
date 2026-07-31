@@ -76,7 +76,7 @@ async function tryAutoRelogin(req, scraper) {
   return false;
 }
 
-// === Keep-alive: self-ping every 14 min to prevent Render free tier spin-down ===
+// === Health check endpoint ===
 
 app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 
@@ -406,11 +406,4 @@ app.listen(PORT, () => {
   console.log('\nFeatures: Multi-tank support, Graph view, Dealer mode');
   console.log('Press Ctrl+C to stop the server');
   console.log('='.repeat(60));
-
-  // Keep-alive: ping ourselves every 14 minutes to prevent Render spin-down
-  const KEEP_ALIVE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  setInterval(() => {
-    const mod = KEEP_ALIVE_URL.startsWith('https') ? require('https') : require('http');
-    mod.get(`${KEEP_ALIVE_URL}/api/ping`, () => {}).on('error', () => {});
-  }, 14 * 60 * 1000);
 });
